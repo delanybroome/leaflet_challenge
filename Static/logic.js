@@ -1,5 +1,37 @@
+//Create Base Map
+
+// Define a baseMaps object to hold our base layers.
+var baseMaps = {
+  "Satellite": satellite,
+  "Outdoors": outdoors,
+  "Grayscale" : lightmap
+};
+
+// Create overlay object to hold our overlay layer.
+var overlayMaps = {
+  Earthquakes: earthquakes
+};
+
+// Create our map, giving it the lightmap and earthquakes layers to display on load
+var myMap = L.map("map", {
+  center: [
+    37.09, -95.71
+  ],
+  zoom: 4,
+  layers: [lightmap, earthquakes]
+});
+
+// Create a tile layor
+// Pass in our baseMaps and overlayMaps
+// Add the tile layor to the map
+L.tile.layers(baseMaps, overlayMaps, {
+  collapsed: false
+}).addTo(myMap);
+
+
+
 //Query URL 
-var queryUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson"
+var queryUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_week.geojson"
 
 //d3 json to get data
 d3.json(queryUrl, function(data) {
@@ -25,11 +57,11 @@ function getColor(mag) {
     if (mag > 1) {
         return "Yellow";
     } 
-    return "LightGreen";
+    return "Green";
 }
 
 function createFeatures(earthquakeData) {
-    //Style of Marker 
+    //Style of Marker  !!!!!!!! I keep getting an error here 
     function styleInfo(feature) {
         return {
             opacity: .75, 
@@ -65,58 +97,8 @@ function createFeatures(earthquakeData) {
   
   function createMap(earthquakes) {
   
-      // Define satellite, outdoors, and grayscale layers.
-      var satellite = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
-        attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
-        maxZoom: 18,
-        id: "mapbox.satellite",
-        accessToken: API_KEY
-      });
-    
-      var outdoors = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
-        attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
-        maxZoom: 18,
-        id: "mapbox.outdoors",
-        accessToken: API_KEY
-      });
-  
-      var lightmap = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
-        attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
-        maxZoom: 18,
-        id: "mapbox.light",
-        accessToken: API_KEY
-      });
-    
-      // Define a baseMaps object to hold our base layers.
-      var baseMaps = {
-        "Satellite": satellite,
-        "Outdoors": outdoors,
-        "Grayscale" : lightmap
-      };
-    
-      // Create overlay object to hold our overlay layer.
-      var overlayMaps = {
-        Earthquakes: earthquakes
-      };
-    
-      // Create our map, giving it the lightmap and earthquakes layers to display on load
-      var myMap = L.map("map", {
-        center: [
-          37.09, -95.71
-        ],
-        zoom: 4,
-        layers: [lightmap, earthquakes]
-      });
-    
-      // Create a layer control
-      // Pass in our baseMaps and overlayMaps
-      // Add the layer control to the map
-      L.control.layers(baseMaps, overlayMaps, {
-        collapsed: false
-      }).addTo(myMap);
-  
       // Set up the legend.
-      var legend = L.control({ position: 'bottomright' });
+      var legend = L.tile({ position: 'bottomright' });
   
       legend.onAdd = function () {
   
