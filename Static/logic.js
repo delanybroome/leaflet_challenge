@@ -1,17 +1,3 @@
-//Create Base Map
-
-// Define a baseMaps object to hold our base layers.
-//var baseMaps = {
-  //"Satellite": satellite,
-  //"Outdoors": outdoors,
-  //"Grayscale" : lightmap
-//};
-
-// Create overlay object to hold our overlay layer.
-//var overlayMaps = {
- // Earthquakes: earthquakes
-//};
-
 // Creating map object
 var myMap = L.map("map", {
   center: [34.0522, -118.2437],
