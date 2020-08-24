@@ -1,45 +1,47 @@
 //Create Base Map
 
 // Define a baseMaps object to hold our base layers.
-var baseMaps = {
-  "Satellite": satellite,
-  "Outdoors": outdoors,
-  "Grayscale" : lightmap
-};
+//var baseMaps = {
+  //"Satellite": satellite,
+  //"Outdoors": outdoors,
+  //"Grayscale" : lightmap
+//};
 
 // Create overlay object to hold our overlay layer.
-var overlayMaps = {
-  Earthquakes: earthquakes
-};
+//var overlayMaps = {
+ // Earthquakes: earthquakes
+//};
 
-// Create our map, giving it the lightmap and earthquakes layers to display on load
+// Creating map object
 var myMap = L.map("map", {
-  center: [
-    37.09, -95.71
-  ],
-  zoom: 4,
-  layers: [lightmap, earthquakes]
+  center: [34.0522, -118.2437],
+  zoom: 8
 });
 
-// Create a tile layor
-// Pass in our baseMaps and overlayMaps
-// Add the tile layor to the map
-L.tile.layers(baseMaps, overlayMaps, {
-  collapsed: false
+// Adding tile layer
+L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
+  attribution: "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>",
+  tileSize: 512,
+  maxZoom: 18,
+  zoomOffset: -1,
+  id: "mapbox/streets-v11",
+  accessToken: API_KEY
 }).addTo(myMap);
 
+// Add our 'lightmap' tile layer to the map
+lightmap.addTo(map);
 
 
-//Query URL 
+//Query URL (USGS JSON data)
 var queryUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_week.geojson"
 
-//d3 json to get data
+//d3 json to get data // possibly need to do d3.json.then
 d3.json(queryUrl, function(data) {
      //send data.features to create features
     createFeatures(data);
    
 });
-// size of marker 
+// size of marker - make different based on magnitude 
 function markerSize(magnitude) {
     return (magnitude +1 ) * 2.5; 
 }
@@ -49,7 +51,7 @@ function getColor(mag) {
         return "Purple";
     }
     if (mag > 4) {
-        return "FireBrick";
+        return "Red";
     }
     if (mag >3) {
         return "Orange"
@@ -57,7 +59,8 @@ function getColor(mag) {
     if (mag > 1) {
         return "Yellow";
     } 
-    return "Green";
+    //default: 
+    //return "Green";
 }
 
 function createFeatures(earthquakeData) {
@@ -67,23 +70,22 @@ function createFeatures(earthquakeData) {
             opacity: .75, 
             fill0pacity: .75,
             fillColor: getColor(feature.properties.mag),
-            color: "black"
-            radius: markerSize(feature.properties.mag)
+            color: "black",
+            radius: markerSize(feature.properties.mag),
             stroke: true, 
             weight: 0.75
         };
     }
 }
   // Define the function that will run for each feature
-    // Give each feature a popup describing the place and time of the earthquake.
+    // Give each feature a popup describing the place and time of the earthquake. ?
     function onEachFeature(feature, layer) {
-        layer.bindPopup("<h3>" + feature.properties.place +
-          "</h3><hr><p>" + Date(feature.properties.time) + "</p>");
-      }
-    
+        layer.bindPopup(
+
+
       // Create a GeoJSON layer containing the features array on the earthquakeData object.
       // Run the onEachFeature function once for each piece of data in the array
-      var earthquakes = L.geoJSON(earthquakeData, {
+      let earthquakes = L.geoJSON(earthquakeData, {
           onEachFeature: onEachFeature,
           pointToLayer: function(feature, latlong) {
               return L.circleMarker(latlong);
