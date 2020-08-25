@@ -35,7 +35,6 @@ var myMap = L.map("map", {
     id: "mapbox/streets-v11",
     accessToken: API_KEY
   }).addTo(myMap);
-  
 
 // Add our 'lightmap' tile layer to the map
 lightmap.addTo(map);
