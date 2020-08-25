@@ -1,32 +1,56 @@
+//Store JSON in Query URL (USGS JSON data) 
+var queryURL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_week.geojson"
+
+//d3 json to get data // possibly need to do d3.json.then
+d3.json(queryURL, function(data) {
+    //send data.features to create features
+   createFeatures(data.features);
+  
+});
+// Define the function that will run for each feature
+    // Give each feature a popup describing the place and time of the earthquake. ?
+function createFeatures(earthquakeData) {
+    var earthquakes = L.geoJSON(earthquakeData, {
+        onEachFeauture(feature, layer){
+            layer.bindPopup("<h3>" + feature.properties.place +
+        "</h3><hr><p>" + Date(feature.properties.time) + "</p>");
+
+        }
+    })
+}
+
+
 // Creating map object
 var myMap = L.map("map", {
-  center: [34.0522, -118.2437],
-  zoom: 8
-});
-
-// Adding tile layer
-L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
-  attribution: "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>",
-  tileSize: 512,
-  maxZoom: 18,
-  zoomOffset: -1,
-  id: "mapbox/streets-v11",
-  accessToken: API_KEY
-}).addTo(myMap);
+    center: [34.0522, -118.2437],
+    zoom: 8
+  });
+  
+  // Adding tile layer
+  L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
+    attribution: "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>",
+    tileSize: 512,
+    maxZoom: 18,
+    zoomOffset: -1,
+    id: "mapbox/streets-v11",
+    accessToken: API_KEY
+  }).addTo(myMap);
+  
 
 // Add our 'lightmap' tile layer to the map
 lightmap.addTo(map);
 
+//Control Layer 
+L.control.layers(null, overlays).addTo(map);
 
-//Query URL (USGS JSON data)
-var queryUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_week.geojson"
+// When the layer control is added, insert a div with the class of "legend"
+info.onAdd = function() {
+    var div = L.DomUtil.create("div", "legend");
+    return div;
+  };
+  // Add the info legend to the map
+  info.addTo(map);
 
-//d3 json to get data // possibly need to do d3.json.then
-d3.json(queryUrl, function(data) {
-     //send data.features to create features
-    createFeatures(data);
-   
-});
 // size of marker - make different based on magnitude 
 function markerSize(magnitude) {
     return (magnitude +1 ) * 2.5; 
@@ -63,10 +87,7 @@ function createFeatures(earthquakeData) {
         };
     }
 }
-  // Define the function that will run for each feature
-    // Give each feature a popup describing the place and time of the earthquake. ?
-    function onEachFeature(feature, layer) {
-        layer.bindPopup(
+
 
 
       // Create a GeoJSON layer containing the features array on the earthquakeData object.
@@ -81,7 +102,7 @@ function createFeatures(earthquakeData) {
     
       // Sending our earthquakes layer to the createMap function.
       createMap(earthquakes);
-  };
+  //};
   
   function createMap(earthquakes) {
   
