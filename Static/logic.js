@@ -5,129 +5,94 @@ var queryURL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/signif
 d3.json(queryURL, function(data) {
     //send data.features to create features
    createFeatures(data.features);
-  
 });
 // Define the function that will run for each feature
     // Give each feature a popup describing the place and time of the earthquake. ?
 function createFeatures(earthquakeData) {
-    var earthquakes = L.geoJSON(earthquakeData, {
-        onEachFeauture(feature, layer){
+        function onEachFeauture(feature, layer){
             layer.bindPopup("<h3>" + feature.properties.place +
         "</h3><hr><p>" + Date(feature.properties.time) + "</p>");
 
-        }
-    })
 }
-
-
-// Creating map object
-var myMap = L.map("map", {
-    center: [34.0522, -118.2437],
-    zoom: 8
+//create GeoJson layer
+var earthquakes = L.geoJSON(earthquakeData, {
+    onEachFeature: onEachFeature,
   });
-  
-  // Adding tile layer
-  L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
-    attribution: "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>",
-    tileSize: 512,
-    maxZoom: 18,
-    zoomOffset: -1,
-    id: "mapbox/streets-v11",
-    accessToken: API_KEY
-  }).addTo(myMap);
-
-// Add our 'lightmap' tile layer to the map
-lightmap.addTo(map);
-
-//Control Layer 
-L.control.layers(null, overlays).addTo(map);
-
-// When the layer control is added, insert a div with the class of "legend"
-info.onAdd = function() {
-    var div = L.DomUtil.create("div", "legend");
-    return div;
-  };
-  // Add the info legend to the map
-  info.addTo(map);
-
-// size of marker - make different based on magnitude 
-function markerSize(magnitude) {
-    return (magnitude +1 ) * 2.5; 
-}
-//determine colors to reflect magnitude of earthquake 
-function getColor(mag) {
-    if (mag >5) {
-        return "Purple";
-    }
-    if (mag > 4) {
-        return "Red";
-    }
-    if (mag >3) {
-        return "Orange"
-    }
-    if (mag > 1) {
-        return "Yellow";
-    } 
-    //default: 
-    //return "Green";
+// Sending our earthquakes layer to the createMap function
+  createMap(earthquakes);
 }
 
-function createFeatures(earthquakeData) {
-    //Style of Marker  !!!!!!!! I keep getting an error here 
-    function styleInfo(feature) {
-        return {
-            opacity: .75, 
-            fill0pacity: .75,
-            fillColor: getColor(feature.properties.mag),
-            color: "black",
-            radius: markerSize(feature.properties.mag),
-            stroke: true, 
-            weight: 0.75
-        };
-    }
-}
-
-
-
-      // Create a GeoJSON layer containing the features array on the earthquakeData object.
-      // Run the onEachFeature function once for each piece of data in the array
-      let earthquakes = L.geoJSON(earthquakeData, {
-          onEachFeature: onEachFeature,
-          pointToLayer: function(feature, latlong) {
-              return L.circleMarker(latlong);
-          },
-          style:styleInfo
+function createMap(earthquakes) {
+    // Define satellite, outdoors, and grayscale layers.
+    var streetmap = L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
+        attribution: "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>",
+        tileSize: 512,
+        maxZoom: 18,
+        zoomOffset: -1,
+        id: "mapbox/streets-v11",
+        accessToken: API_KEY
       });
-    
-      // Sending our earthquakes layer to the createMap function.
-      createMap(earthquakes);
-  //};
+
+    var lightmap = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
+      attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
+      maxZoom: 18,
+      id: "mapbox.light",
+      accessToken: API_KEY
+    });
   
-  function createMap(earthquakes) {
+    // Define a baseMaps object to hold our base layers.
+    var baseMaps = {
+      "Street Map": streetmap,
+      "Lightmap" : lightmap
+    };
   
-      // Set up the legend.
-      var legend = L.tile({ position: 'bottomright' });
+    // Create overlay object to hold our overlay layer.
+    var overlayMaps = {
+      "Earthquakes": earthquakes
+    };
   
-      legend.onAdd = function () {
+    // dDefine map object and making it display on load
+    var myMap = L.map("map", {
+      center: [
+        37.09, -95.71
+      ],
+      zoom: 5,
+      layers: [lightmap, earthquakes]
+    });
   
-          var div = L.DomUtil.create('div', 'info legend');
-          var magnitude = [0, 1, 2, 3, 4, 5],
-              labels = [];
-  
-          div.innerHTML = "<div style='background-color:white; padding: .5em;'><h4 style='background-color:white; padding:.5em'>Magnitude</h4><ul>";
-  
-          for (var i = 0; i < magnitude.length; i++) {
-               div.innerHTML += 
-               '<li style=\"list-style:none; padding:.5em; background-color:' + getColor(magnitude[i] + 1) + ';\"> '+ 
-                  magnitude[i] + (magnitude[i + 1] ? '&ndash;' + magnitude[i + 1] + '<br>' : '+')
-                  "</li>";
-          }
-         div.innerHTML += "</ul></div>"; 
-  
-          return div;
-      };
-  
-      // Adding legend to the map.
-      legend.addTo(myMap);
-  
-    }
+    // Create a layer control
+    // Pass in our baseMaps and overlayMaps
+    // Add the layer control to the map
+    L.control.layers(baseMaps, overlayMaps, {
+      collapsed: false
+    }).addTo(myMap);
+
+    // Set up the legend.
+    var legend = L.control({ 
+        position: 'bottomright'
+    });
+
+    legend.onAdd = function (myMap) {
+
+        var div = L.DomUtil.create('div', 'info legend');
+        var magnitude = [0, 1, 2, 3, 4, 5],
+            labels = [];
+
+        div.innerHTML = "<div style='background-color:white; padding: .5em;'><h4 style='background-color:white; padding:.5em'>Magnitude</h4><ul>";
+//Creat Legend
+        for (var i = 0; i < magnitude.length; i++) {
+             div.innerHTML += 
+             '<li style=\"list-style:none; padding:.5em; background-color:' + getColor(magnitude[i] + 1) + ';\"> '+ 
+                magnitude[i] + (magnitude[i + 1] ? '&ndash;' + magnitude[i + 1] + '<br>' : '+')
+                "</li>";
+        }
+       div.innerHTML += "</ul></div>"; 
+
+        return div;
+    };
+
+    // Adding legend to the map.
+    legend.addTo(myMap);
+}
+
+
